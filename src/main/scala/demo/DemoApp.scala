@@ -12,7 +12,7 @@ object DemoApp extends App {
 
     def handle(e: Either[Error, Unit]) = e match {
         case Left(error) => IO { println(s"error: $error") }
-        case Right(value) => IO { println("successfully written") }
+        case Right(_) => IO { println("successfully written") }
     }
 
 }
