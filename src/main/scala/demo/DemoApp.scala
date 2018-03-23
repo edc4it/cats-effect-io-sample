@@ -6,6 +6,6 @@ object DemoApp extends App {
 
     import FileConverter._
 
-    convert(File.temp / "demofile", File.temp / "result")
+    convert(File.currentWorkingDirectory / "demofile", File.currentWorkingDirectory / "result")
 
 }
