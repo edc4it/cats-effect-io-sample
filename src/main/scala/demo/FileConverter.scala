@@ -1,37 +1,29 @@
 package demo
 
 import better.files.File
-import scala.util.Try
-import cats.effect.IO
+import cats.Monad
+import cats.effect.Sync
 import cats.implicits._
-import cats.data.EitherT
 
 
 object FileConverter {
 
-  def convert(in: File, out: File): IO[Either[Error, Unit]] = {
-    val r = for {
-      str <- EitherT(read(in))
-      _ <- EitherT(write(out, str.toUpperCase()))
+  def convert[F[_] : Sync](in: File, out: File): F[Unit] =
+    for {
+      s <- read(in)
+      c <- Monad[F].pure(transform(s))
+      _ <- write(out, c)
     } yield ()
-    r.value
-  }
 
+  private def transform(s: String): String =
+    s.toUpperCase()
 
-  private def write(file: File, s: String): IO[Either[IOError, Unit]] =  IO {
-      val bytes = s.getBytes.iterator
-      Try(file.writeBytes(bytes))
-        .map(_ => ())
-        .toEither
-        .leftMap(t => IOError(t.getMessage))
-    }
+  private def write[F[_] : Sync](file: File, s: String): F[Unit] =
+    Sync[F].delay(file.writeText(s))
 
-  private def read(file: File): IO[Either[IOError, String]] = IO {
-      Try(file.loadBytes)
-        .map(bytes => new String(bytes))
-        .toEither
-        .leftMap(t => IOError(t.getMessage))
-    }
+  private def read[F[_] : Sync](file: File): F[String] =
+    Sync[F].delay(file.loadBytes)
+      .map(b => new String(b))
 }
 
 
